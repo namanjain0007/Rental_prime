@@ -8,6 +8,8 @@ const authRoutes = require("./router/Users/authRoutes");
 const adminUserRoutes = require("./router/Admin/adminUserRoutes");
 const adminUserAuth = require("./router/Admin/adminUserAuth");
 const vendorListingRoutes = require("./router/Users/Vendor_listing_routes/vendor_listing_routes");
+const categoryRoutes = require("./router/Admin/Category/categoryRoute");
+const pricingPlanRoutes = require("./router/Admin/pricingPlanRoutes");
 
 //Middleware for parsing JSON data
 app.use(express.json());
@@ -31,6 +33,12 @@ app.use("/auth/admin", adminUserAuth);
 
 //vendor listing CRUD
 app.use("/vendor_listing", vendorListingRoutes);
+
+//category CRUD
+app.use("/category", categoryRoutes);
+
+//pricing plan CRUD
+app.use("/pricing_plans", pricingPlanRoutes);
 
 //Server listening on port 3000
 const PORT = process.env.PORT || 3000;

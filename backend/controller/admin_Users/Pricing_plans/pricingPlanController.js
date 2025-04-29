@@ -1,0 +1,122 @@
+const pool = require("../../../database/postgres");
+
+// Create Plan
+exports.createPlan = async (req, res) => {
+  const { name, price, duration_in_days } = req.body;
+
+  if (!name || !price || !duration_in_days) {
+    return res.status(400).json({ msg: "All fields are required" });
+  }
+
+  try {
+    const existing = await pool.query(
+      `SELECT * FROM pricing_plans WHERE name = $1`,
+      [name]
+    );
+    if (existing.rows.length > 0) {
+      return res
+        .status(400)
+        .json({ msg: "Plan with this name already exists" });
+    }
+
+    const newPlan = await pool.query(
+      `INSERT INTO pricing_plans (name, price, duration_in_days)
+       VALUES ($1, $2, $3) RETURNING *`,
+      [name, price, duration_in_days]
+    );
+
+    res.status(201).json(newPlan.rows[0]);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+};
+
+// Get All Plans
+exports.getAllPlans = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM pricing_plans ORDER BY plan_id`
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+};
+
+// Update Plan
+exports.updatePlan = async (req, res) => {
+  const { planId } = req.params;
+  const { name, price, duration_in_days } = req.body;
+
+  try {
+    const existing = await pool.query(
+      `SELECT * FROM pricing_plans WHERE plan_id = $1`,
+      [planId]
+    );
+
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ msg: "Plan not found" });
+    }
+
+    // Prepare dynamic fields
+    const fields = [];
+    const values = [];
+    let index = 1;
+
+    if (name !== undefined) {
+      fields.push(`name = $${index++}`);
+      values.push(name);
+    }
+    if (price !== undefined) {
+      fields.push(`price = $${index++}`);
+      values.push(price);
+    }
+    if (duration_in_days !== undefined) {
+      fields.push(`duration_in_days = $${index++}`);
+      values.push(duration_in_days);
+    }
+
+    if (fields.length === 0) {
+      return res.status(400).json({ msg: "No fields provided to update" });
+    }
+
+    // Always update timestamp
+    fields.push(`updated_at = CURRENT_TIMESTAMP`);
+
+    // Final query
+    const query = `UPDATE pricing_plans SET ${fields.join(
+      ", "
+    )} WHERE plan_id = $${index} RETURNING *`;
+    values.push(planId);
+
+    const result = await pool.query(query, values);
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+};
+
+// Delete Plan
+exports.deletePlan = async (req, res) => {
+  const { planId } = req.params;
+
+  try {
+    const deleted = await pool.query(
+      `DELETE FROM pricing_plans WHERE plan_id = $1 RETURNING *`,
+      [planId]
+    );
+
+    if (deleted.rows.length === 0) {
+      return res.status(404).json({ msg: "Plan not found" });
+    }
+
+    res.json({ msg: "Plan deleted successfully" });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+};
