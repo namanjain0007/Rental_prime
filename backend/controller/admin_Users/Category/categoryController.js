@@ -2,6 +2,10 @@ const pool = require("../../../database/postgres");
 
 // Create Category
 exports.createCategory = async (req, res) => {
+  if (!req.body) {
+    return res.status(400).json({ msg: "No data provided" });
+  }
+
   const { name } = req.body;
   if (!name) {
     return res.status(400).json({ msg: "All fields are required" });
@@ -40,6 +44,9 @@ exports.getAllCategories = async (req, res) => {
 // Get Category by ID
 exports.getCategoryById = async (req, res) => {
   const { categoryId } = req.params;
+  if (!categoryId) {
+    return res.status(400).json({ msg: "Category ID is required" });
+  }
 
   try {
     const category = await pool.query(
@@ -60,6 +67,13 @@ exports.getCategoryById = async (req, res) => {
 
 // Update Category
 exports.updateCategory = async (req, res) => {
+  if (!req.params.categoryId) {
+    return res.status(400).json({ msg: "Category ID is required" });
+  }
+  if (!req.body) {
+    return res.status(400).json({ msg: "No data provided to update" });
+  }
+
   const { categoryId } = req.params;
   const { name } = req.body;
 
@@ -85,6 +99,9 @@ exports.updateCategory = async (req, res) => {
 // Delete Category
 exports.deleteCategory = async (req, res) => {
   const { categoryId } = req.params;
+  if (!categoryId) {
+    return res.status(400).json({ msg: "Category ID is required" });
+  }
 
   try {
     const deletedCategory = await pool.query(

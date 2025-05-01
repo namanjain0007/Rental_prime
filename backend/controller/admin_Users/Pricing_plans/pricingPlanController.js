@@ -3,6 +3,9 @@ const pool = require("../../../database/postgres");
 // Create Plan
 exports.createPlan = async (req, res) => {
   const { name, price, duration_in_days } = req.body;
+  if (!req.body) {
+    return res.status(400).json({ msg: "No data provided" });
+  }
 
   if (!name || !price || !duration_in_days) {
     return res.status(400).json({ msg: "All fields are required" });
@@ -47,8 +50,15 @@ exports.getAllPlans = async (req, res) => {
 
 // Update Plan
 exports.updatePlan = async (req, res) => {
+  if (!req.body) {
+    return res.status(400).json({ msg: "No data provided to update" });
+  }
+
   const { planId } = req.params;
   const { name, price, duration_in_days } = req.body;
+  if (!planId) {
+    return res.status(400).json({ msg: "Plan ID is required" });
+  }
 
   try {
     const existing = await pool.query(
@@ -103,6 +113,9 @@ exports.updatePlan = async (req, res) => {
 // Delete Plan
 exports.deletePlan = async (req, res) => {
   const { planId } = req.params;
+  if (!planId) {
+    return res.status(400).json({ msg: "Plan ID is required" });
+  }
 
   try {
     const deleted = await pool.query(

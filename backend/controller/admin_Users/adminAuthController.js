@@ -1,6 +1,6 @@
 //Importing modules and files
 const { findadminUserByEmail } = require("../../Models/adminUserModel");
-const generateToken = require("../../utlis/generateToken");
+const admin_generateToken = require("../../utlis/admin_generateToken");
 const bcrypt = require("bcryptjs");
 
 const adminLogin = async (req, res) => {
@@ -16,7 +16,7 @@ const adminLogin = async (req, res) => {
   const match = await bcrypt.compare(password, admin.password);
   if (!match) return res.status(400).json({ message: "Wrong password" });
 
-  const token = generateToken(admin);
+  const token = admin_generateToken(admin);
 
   res.json({ message: "Admin_user login successful", token });
 };

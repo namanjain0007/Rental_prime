@@ -4,6 +4,9 @@ const { findUserByEmail } = require("../../Models/userModel");
 
 // CREATE
 exports.createUser = async (req, res) => {
+  if (!req.body) {
+    return res.status(400).json({ error: "No data provided" });
+  }
   const { name, email, password, user_type } = req.body;
 
   if (!name || !email || !password || !user_type) {
@@ -54,6 +57,12 @@ exports.getUserById = async (req, res) => {
 
 // UPDATE
 exports.updateUser = async (req, res) => {
+  if (req.user.user_id !== parseInt(req.params.id)) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+  if (!req.body || !req.body.name || !req.body.email) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
   const { id } = req.params;
   const { name, email } = req.body;
 

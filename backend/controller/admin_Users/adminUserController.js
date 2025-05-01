@@ -1,24 +1,28 @@
 const db = require("../../database/postgres");
 const bcrypt = require("bcryptjs");
-const { findUserByEmail } = require("../../Models/userModel");
+const { findadminUserByEmail } = require("../../Models/adminUserModel");
 
 // CREATE
 exports.createUser = async (req, res) => {
-  const { username, email, password } = req.body;
+  if (!req.body) {
+    return res.status(400).json({ error: "No data provided" });
+  }
+  const { name, email, password, admin_user_type } = req.body;
 
-  if (!username || !email || !password) {
+  if (!name || !email || !password || !admin_user_type) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
-  const user = await findUserByEmail(email);
-  if (user) return res.status(400).json({ message: "User already exists" });
+  const user = await findadminUserByEmail(email);
+  if (user)
+    return res.status(400).json({ message: "Admin_user already exists" });
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
     const result = await db.query(
-      "INSERT INTO admin_users (username,email, password) VALUES ($1,$2, $3) RETURNING *",
-      [username, email, hashedPassword]
+      "INSERT INTO admin_users (name,email, password,admin_user_type) VALUES ($1,$2, $3,$4) RETURNING *",
+      [name, email, hashedPassword, admin_user_type]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -40,11 +44,12 @@ exports.getAllUsers = async (req, res) => {
 exports.getUserById = async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await db.query("SELECT * FROM admin_users WHERE id = $1", [
-      id,
-    ]);
+    const result = await db.query(
+      "SELECT * FROM admin_users WHERE admin_id = $1",
+      [id]
+    );
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ error: "Admin_user not found" });
     }
     res.json(result.rows[0]);
   } catch (err) {
@@ -54,20 +59,24 @@ exports.getUserById = async (req, res) => {
 
 // UPDATE
 exports.updateUser = async (req, res) => {
+  if (!req.body || !req.body.name || !req.body.email) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
   const { id } = req.params;
-  const { username, email } = req.body;
+  const { name, email } = req.body;
 
   try {
-    const check = await db.query("SELECT * FROM admin_users WHERE id = $1", [
-      id,
-    ]);
+    const check = await db.query(
+      "SELECT * FROM admin_users WHERE admin_id = $1",
+      [id]
+    );
     if (check.rows.length === 0) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ error: "Admin_user not found" });
     }
 
     const result = await db.query(
-      "UPDATE admin_users SET username = $1, email = $2 WHERE id = $3 RETURNING *",
-      [username || check.rows[0].username, email || check.rows[0].email, id]
+      "UPDATE admin_users SET name = $1, email = $2 WHERE admin_id = $3 RETURNING *",
+      [name || check.rows[0].name, email || check.rows[0].email, id]
     );
 
     res.json(result.rows[0]);
@@ -80,13 +89,14 @@ exports.updateUser = async (req, res) => {
 exports.deleteUser = async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await db.query("DELETE FROM admin_users WHERE id = $1", [
-      id,
-    ]);
+    const result = await db.query(
+      "DELETE FROM admin_users WHERE admin_id = $1",
+      [id]
+    );
     if (result.rowCount === 0) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ error: "Admin_user not found" });
     }
-    res.json({ message: "User deleted" });
+    res.json({ message: "Admin_user deleted" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

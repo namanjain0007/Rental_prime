@@ -17,7 +17,6 @@ const userLogin = async (req, res) => {
   if (!match) return res.status(400).json({ message: "Wrong password" });
 
   const token = generateToken(user);
-
   res.json({ message: "User login successful", token });
 };
 

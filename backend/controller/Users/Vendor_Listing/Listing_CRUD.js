@@ -2,8 +2,12 @@ const pool = require("../../../database/postgres");
 
 // Create a new listing by owner ID
 exports.createListing = async (req, res) => {
+  if (!req.body) {
+    return res.status(400).json({ msg: "No data provided" });
+  }
+
   const {
-    owner_id,
+    // owner_id,
     title,
     description,
     price,
@@ -13,7 +17,7 @@ exports.createListing = async (req, res) => {
     available_until,
   } = req.body;
   if (
-    !owner_id ||
+    // !owner_id ||
     !title ||
     !description ||
     !price ||
@@ -30,7 +34,7 @@ exports.createListing = async (req, res) => {
       `INSERT INTO listings (owner_id, title, description, price, location, category, available_from, available_until, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING *`,
       [
-        owner_id,
+        req.user.user_id,
         title,
         description,
         price,
@@ -47,9 +51,23 @@ exports.createListing = async (req, res) => {
   }
 };
 
+// Get all listings
+exports.getAllListings = async (req, res) => {
+  try {
+    const listings = await pool.query("SELECT * FROM listings");
+    res.json(listings.rows);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+};
+
 // Get all listings of a specific owner
 exports.getOwnerListings = async (req, res) => {
   const { ownerId } = req.params;
+  if (!ownerId) {
+    return res.status(400).json({ msg: "Owner ID is required" });
+  }
 
   try {
     const listings = await pool.query(
@@ -66,6 +84,9 @@ exports.getOwnerListings = async (req, res) => {
 // Get a specific listing by ID
 exports.getListings = async (req, res) => {
   const { listingId } = req.params;
+  if (!listingId) {
+    return res.status(400).json({ msg: "Listing ID is required" });
+  }
 
   try {
     const listing = await pool.query(
@@ -85,6 +106,10 @@ exports.getListings = async (req, res) => {
 // Update a listing by ID
 // PATCH request for updating listing
 exports.updateListing = async (req, res) => {
+  if (!req.body) {
+    return res.status(400).json({ msg: "No data provided to update" });
+  }
+
   const { listingId } = req.params;
   const {
     title,
@@ -96,6 +121,16 @@ exports.updateListing = async (req, res) => {
     available_until,
   } = req.body;
 
+  const result = await pool.query(
+    "SELECT * FROM listings WHERE listing_id = $1 AND owner_id = $2",
+    [listingId, req.user.user_id]
+  );
+
+  if (result.rows.length === 0) {
+    return res
+      .status(403)
+      .json({ msg: "You are not allowed to update this listing" });
+  }
   // Create an array to hold values for the update query
   const updatedFields = [];
   const values = [];
@@ -174,15 +209,21 @@ exports.updateListing = async (req, res) => {
 // Delete a listing by ID
 exports.deleteListing = async (req, res) => {
   const { listingId } = req.params;
+  if (!listingId) {
+    return res.status(400).json({ msg: "Listing ID is required" });
+  }
 
   try {
     const deletedListing = await pool.query(
-      "DELETE FROM listings WHERE listing_id = $1 RETURNING *",
-      [listingId]
+      "DELETE FROM listings WHERE listing_id = $1 AND owner_id = $2 RETURNING *",
+      [listingId, req.user.user_id]
     );
     if (deletedListing.rows.length === 0) {
-      return res.status(404).json({ msg: "Listing not found" });
+      return res
+        .status(403)
+        .json({ msg: "You are not allowed to delete this listing" });
     }
+
     res.json({ msg: "Listing deleted successfully" });
   } catch (err) {
     console.error(err.message);
