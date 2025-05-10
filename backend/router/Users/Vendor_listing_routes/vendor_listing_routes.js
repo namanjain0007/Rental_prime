@@ -8,25 +8,25 @@ const {
   updateListing,
   deleteListing,
 } = require("../../../controller/Users/Vendor_Listing/Listing_CRUD");
-const verifyToken = require("../../../middleware/authMiddleware");
-const isOwner = require("../../../utlis/isOwner");
+const adminVerifyToken = require("../../../middleware/auth_adminMiddleware");
+const isOwnerOrAdmin = require("../../../middleware/isOwnerOrAdmin");
 
-// Create a new listing
-router.post("/listing", verifyToken, isOwner, createListing);
+// Create a new listing (can be done by both owner and superadmin)
+router.post("/listing", isOwnerOrAdmin, createListing);
 
 // Get all listings by the owner
-router.get("/:ownerId", getOwnerListings);
+router.get("/:ownerId", adminVerifyToken, getOwnerListings);
 
 // Get all listings
-router.get("/", getAllListings);
+router.get("/", adminVerifyToken, getAllListings);
 
 // Get a specific listing
 router.get("/listing/:listingId", getListings);
 
-// Update a listing
-router.patch("/listing/:listingId", verifyToken, isOwner, updateListing);
+// Update a listing (can be done by both owner and superadmin)
+router.patch("/listing/:listingId", isOwnerOrAdmin, updateListing);
 
-// Delete a listing
-router.delete("/listing/:listingId", verifyToken, isOwner, deleteListing);
+// Delete a listing (can be done by both owner and superadmin)
+router.delete("/listing/:listingId", isOwnerOrAdmin, deleteListing);
 
 module.exports = router;

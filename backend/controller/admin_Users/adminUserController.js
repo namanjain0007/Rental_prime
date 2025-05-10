@@ -59,11 +59,16 @@ exports.getUserById = async (req, res) => {
 
 // UPDATE
 exports.updateUser = async (req, res) => {
-  if (!req.body || !req.body.name || !req.body.email) {
+  if (
+    !req.body ||
+    !req.body.name ||
+    !req.body.email ||
+    !req.body.admin_user_type
+  ) {
     return res.status(400).json({ error: "All fields are required" });
   }
   const { id } = req.params;
-  const { name, email } = req.body;
+  const { name, email, admin_user_type } = req.body;
 
   try {
     const check = await db.query(
@@ -75,8 +80,13 @@ exports.updateUser = async (req, res) => {
     }
 
     const result = await db.query(
-      "UPDATE admin_users SET name = $1, email = $2 WHERE admin_id = $3 RETURNING *",
-      [name || check.rows[0].name, email || check.rows[0].email, id]
+      "UPDATE admin_users SET name = $1, email = $2,admin_user_type=$3 WHERE admin_id = $4 RETURNING *",
+      [
+        name || check.rows[0].name,
+        email || check.rows[0].email,
+        admin_user_type || check.rows[0].admin_user_type,
+        id,
+      ]
     );
 
     res.json(result.rows[0]);
