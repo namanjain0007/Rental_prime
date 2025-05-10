@@ -1,6 +1,7 @@
 //Importing modules and files
 const express = require("express");
 const app = express();
+const cors = require("cors");
 
 //Routes files
 const userRoutes = require("./router/Users/userRoutes");
@@ -11,6 +12,8 @@ const vendorListingRoutes = require("./router/Users/Vendor_listing_routes/vendor
 const categoryRoutes = require("./router/Admin/Category/categoryRoute");
 const pricingPlanRoutes = require("./router/Admin/pricingPlanRoutes");
 const notificationRoutes = require("./router/Users/Notification_routes/notification_routes");
+
+app.use(cors());
 
 //Middleware for parsing JSON data
 app.use(express.json());
