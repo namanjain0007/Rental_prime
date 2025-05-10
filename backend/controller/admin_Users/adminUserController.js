@@ -63,12 +63,13 @@ exports.updateUser = async (req, res) => {
     !req.body ||
     !req.body.name ||
     !req.body.email ||
+    !req.body.password ||
     !req.body.admin_user_type
   ) {
     return res.status(400).json({ error: "All fields are required" });
   }
   const { id } = req.params;
-  const { name, email, admin_user_type } = req.body;
+  const { name, email, password, admin_user_type } = req.body;
 
   try {
     const check = await db.query(
@@ -80,10 +81,11 @@ exports.updateUser = async (req, res) => {
     }
 
     const result = await db.query(
-      "UPDATE admin_users SET name = $1, email = $2,admin_user_type=$3 WHERE admin_id = $4 RETURNING *",
+      "UPDATE admin_users SET name = $1, email = $2,password=$3,admin_user_type=$4 WHERE admin_id = $5 RETURNING *",
       [
         name || check.rows[0].name,
         email || check.rows[0].email,
+        password || check.rows[0].password,
         admin_user_type || check.rows[0].admin_user_type,
         id,
       ]
