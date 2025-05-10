@@ -80,12 +80,14 @@ exports.updateUser = async (req, res) => {
       return res.status(404).json({ error: "Admin_user not found" });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const result = await db.query(
       "UPDATE admin_users SET name = $1, email = $2,password=$3,admin_user_type=$4 WHERE admin_id = $5 RETURNING *",
       [
         name || check.rows[0].name,
         email || check.rows[0].email,
-        password || check.rows[0].password,
+        hashedPassword,
         admin_user_type || check.rows[0].admin_user_type,
         id,
       ]
