@@ -101,3 +101,25 @@ exports.deleteNotification = async (req, res) => {
     res.status(403).json({ error: err.message });
   }
 };
+
+/**
+ * Get all notifications in the system
+ * This route is restricted to super_admin users only
+ */
+exports.getAllNotifications = async (req, res) => {
+  try {
+    // The auth_adminMiddleware already verifies that the user is a super_admin
+    const notifications = await Notification.getAllNotifications();
+    res.json({
+      count: notifications.length,
+      notifications,
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({
+        error: "Failed to fetch all notifications",
+        message: err.message,
+      });
+  }
+};

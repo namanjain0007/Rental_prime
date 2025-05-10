@@ -29,8 +29,8 @@ exports.getUserNotifications = async (user_id, user_type) => {
   }
 
   const result = await pool.query(
-    `SELECT * FROM notifications 
-     WHERE user_id = $1 AND user_type = $2 
+    `SELECT * FROM notifications
+     WHERE user_id = $1 AND user_type = $2
      ORDER BY created_at DESC`,
     [user_id, user_type]
   );
@@ -79,4 +79,16 @@ exports.deleteNotification = async (id, user_id) => {
     [id]
   );
   return res.rows[0];
+};
+
+exports.getAllNotifications = async () => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM notifications
+       ORDER BY created_at DESC`
+    );
+    return result.rows;
+  } catch (error) {
+    throw new Error(`Failed to fetch all notifications: ${error.message}`);
+  }
 };
