@@ -3,7 +3,7 @@ const pool = require("../../../database/postgres");
 // Create Plan
 exports.createPlan = async (req, res) => {
   const { name, price, duration_in_days, available_listing } = req.body;
-  console.log(available_listing);
+  // console.log(available_listing);
 
   if (!req.body) {
     return res.status(400).json({ msg: "No data provided" });
