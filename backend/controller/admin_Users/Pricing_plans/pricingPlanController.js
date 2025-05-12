@@ -2,12 +2,14 @@ const pool = require("../../../database/postgres");
 
 // Create Plan
 exports.createPlan = async (req, res) => {
-  const { name, price, duration_in_days } = req.body;
+  const { name, price, duration_in_days, available_listing } = req.body;
+  console.log(available_listing);
+
   if (!req.body) {
     return res.status(400).json({ msg: "No data provided" });
   }
 
-  if (!name || !price || !duration_in_days) {
+  if (!name || !price || !duration_in_days || !available_listing) {
     return res.status(400).json({ msg: "All fields are required" });
   }
 
@@ -23,9 +25,9 @@ exports.createPlan = async (req, res) => {
     }
 
     const newPlan = await pool.query(
-      `INSERT INTO pricing_plans (name, price, duration_in_days)
-       VALUES ($1, $2, $3) RETURNING *`,
-      [name, price, duration_in_days]
+      `INSERT INTO pricing_plans (name, price, duration_in_days,available_listing)
+       VALUES ($1, $2, $3,$4) RETURNING *`,
+      [name, price, duration_in_days, available_listing]
     );
 
     res.status(201).json(newPlan.rows[0]);
@@ -55,7 +57,7 @@ exports.updatePlan = async (req, res) => {
   }
 
   const { planId } = req.params;
-  const { name, price, duration_in_days } = req.body;
+  const { name, price, duration_in_days, available_listing } = req.body;
   if (!planId) {
     return res.status(400).json({ msg: "Plan ID is required" });
   }
@@ -86,6 +88,10 @@ exports.updatePlan = async (req, res) => {
     if (duration_in_days !== undefined) {
       fields.push(`duration_in_days = $${index++}`);
       values.push(duration_in_days);
+    }
+    if (available_listing !== undefined) {
+      fields.push(`available_listing = $${index++}`);
+      values.push(available_listing);
     }
 
     if (fields.length === 0) {
