@@ -10,9 +10,10 @@ const {
 } = require("../../../controller/Users/Vendor_Listing/Listing_CRUD");
 const adminVerifyToken = require("../../../middleware/auth_adminMiddleware");
 const isOwnerOrAdmin = require("../../../middleware/isOwnerOrAdmin");
+const checkListingLimit = require("../../../middleware/checkListingLimit");
 
 // Create a new listing (can be done by both owner and superadmin)
-router.post("/listing", isOwnerOrAdmin, createListing);
+router.post("/listing", isOwnerOrAdmin, checkListingLimit, createListing);
 
 // Get all listings by the owner
 router.get("/:ownerId", adminVerifyToken, getOwnerListings);
