@@ -21,10 +21,6 @@ router.get(
 );
 
 // router.patch("/:id/read", notificationController.markAsRead);
-router.delete(
-  "/:id",
-  verify_adminToken,
-  notificationController.deleteNotification
-);
+router.delete("/:id", verifyToken, notificationController.deleteNotification);
 
 module.exports = router;

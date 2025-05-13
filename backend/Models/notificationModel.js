@@ -1,24 +1,38 @@
 const pool = require("../database/postgres");
 
-exports.createNotification = async ({ user_id, user_type, type, message }) => {
-  if (!user_id || !user_type || !type || !message) {
+exports.createNotification = async ({
+  sender_id,
+  sender_type,
+  receiver_id,
+  receiver_type,
+  type,
+  message,
+}) => {
+  if (
+    !sender_id ||
+    !sender_type ||
+    !receiver_id ||
+    !receiver_type ||
+    !type ||
+    !message
+  ) {
     throw new Error("All fields are required");
   }
 
   const result = await pool.query(
     "SELECT user_type FROM users WHERE user_id = $1",
-    [user_id]
+    [sender_id]
   );
   const user = result.rows[0];
 
   // Check if user_type matches
-  if (!user || user.user_type !== user_type) {
-    throw new Error(`User type mismatch for user_id ${user_id}`);
+  if (!user || user.user_type !== sender_type) {
+    throw new Error(`User type mismatch for user_id ${sender_id}`);
   }
   const notification = await pool.query(
-    `INSERT INTO notifications (user_id, user_type, type, message)
-     VALUES ($1, $2, $3, $4) RETURNING *`,
-    [user_id, user_type, type, message]
+    `INSERT INTO notifications (sender_id, sender_type, receiver_id, receiver_type, type, message)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+    [sender_id, sender_type, receiver_id, receiver_type, type, message]
   );
   return notification.rows[0];
 };
@@ -30,7 +44,7 @@ exports.getUserNotifications = async (user_id, user_type) => {
 
   const result = await pool.query(
     `SELECT * FROM notifications
-     WHERE user_id = $1 AND user_type = $2
+     WHERE sender_id = $1 AND sender_type = $2
      ORDER BY created_at DESC`,
     [user_id, user_type]
   );
@@ -65,7 +79,7 @@ exports.deleteNotification = async (id, user_id) => {
 
   // Step 1: Check if notification exists and belongs to user
   const check = await pool.query(
-    `SELECT * FROM notifications WHERE id = $1 AND user_id = $2`,
+    `SELECT * FROM notifications WHERE id = $1 AND sender_id = $2`,
     [id, user_id]
   );
 
