@@ -71,10 +71,7 @@ exports.deleteNotification = async (req, res) => {
       return res.status(400).json({ error: "Notification ID is required" });
     }
 
-    const user_id = req.user.user_id; // from JWT
-    console.log("user_id", user_id);
-
-    const deleted = await Notification.deleteNotification(id, user_id);
+    const deleted = await Notification.deleteNotification(id);
     res.json({ message: "Notification deleted", deleted });
   } catch (err) {
     res.status(403).json({ error: err.message });

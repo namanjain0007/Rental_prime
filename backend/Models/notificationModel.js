@@ -72,26 +72,22 @@ exports.getUserNotifications = async (user_id, user_type) => {
 //   }
 //   return res.rows[0];
 // };
-exports.deleteNotification = async (id, user_id) => {
-  if (!id || !user_id) {
-    throw new Error("Notification ID and User ID are required");
+exports.deleteNotification = async (id) => {
+  if (!id) {
+    throw new Error("Notification ID is required");
   }
 
-  // Step 1: Check if notification exists and belongs to user
-  const check = await pool.query(
-    `SELECT * FROM notifications WHERE id = $1 AND sender_id = $2`,
-    [id, user_id]
-  );
+  // Step 1: Check if notification exists
+  const check = await pool.query(`SELECT * FROM notifications WHERE id = $1`, [
+    id,
+  ]);
 
   if (check.rowCount === 0) {
-    throw new Error("Notification not found or access denied");
+    throw new Error("Notification not found");
   }
 
-  // Step 2: Delete
-  const res = await pool.query(
-    `DELETE FROM notifications WHERE id = $1 RETURNING *`,
-    [id]
-  );
+  // Step 2: Delete the notification
+  const res = await pool.query(`DELETE FROM notifications WHERE id = $1`, [id]);
   return res.rows[0];
 };
 
